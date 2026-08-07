@@ -1,0 +1,2 @@
+import{i as t}from"../../assets/scripts/insert-styles-43b34cac.js";var n=`.skip-navigation{pointer-events:none}.skip-navigation.focus-visible,.skip-navigation:focus,.skip-navigation:focus-visible{opacity:1;pointer-events:visible}
+`;t(n);function o(e){e.preventDefault();var i=document.querySelector("#block-after-navigation");i.setAttribute("tabindex","-1"),i.focus()}document.querySelector("#skip-link").addEventListener("click",o);
