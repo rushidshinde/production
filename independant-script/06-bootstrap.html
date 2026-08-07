@@ -1,0 +1,20 @@
+<script>
+(function () {
+  "use strict";
+
+  function bootstrapMainGlobalScripts() {
+    window.SiteApp = window.SiteApp || {};
+    if (typeof window.SiteApp.initStyles === "function") window.SiteApp.initStyles();
+    if (typeof window.SiteApp.initCore === "function") window.SiteApp.initCore();
+    if (typeof window.SiteApp.initSkipNav === "function") window.SiteApp.initSkipNav();
+    if (typeof window.SiteApp.initHeader === "function") window.SiteApp.initHeader();
+    if (typeof window.SiteApp.initFooter === "function") window.SiteApp.initFooter();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bootstrapMainGlobalScripts);
+  } else {
+    bootstrapMainGlobalScripts();
+  }
+})();
+</script>

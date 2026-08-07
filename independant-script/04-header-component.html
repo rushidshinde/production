@@ -1,0 +1,411 @@
+<script>
+window.SiteApp = window.SiteApp || {};
+window.SiteApp.initHeader = function () {
+  const CLASSES = {
+    ACTIVE: "js--active",
+    DISABLED: "js--disabled",
+    OPEN: "js--open",
+    CLOSED: "js--closed",
+    LOCKED: "js--locked",
+    CLONE: "js--clone"
+  };
+
+  const BREAKPOINTS = {
+    MOBILE_SM: 340,
+    MOBILE_MD: 480,
+    TABLET_SM: 768,
+    TABLET_MD: 992,
+    DESKTOP_SM: 1280,
+    DESKTOP_MD: 1440,
+    DESKTOP_LG: 1920
+  };
+
+  const KEY_CODES = {
+    ENTER: "Enter",
+    ESC: "Escape",
+    SPACE: " ",
+    END: "End",
+    HOME: "Home",
+    LEFT: "ArrowLeft",
+    UP: "ArrowUp",
+    RIGHT: "ArrowRight",
+    DOWN: "ArrowDown",
+    DELETE: "Delete"
+  };
+
+  // Scroll-Lock Helper
+  function setScrollbarWidth() {
+    const doc = document.documentElement;
+    const scrollbarWidth = window.innerWidth - doc.clientWidth;
+    doc.style.setProperty("--js-scrollbar-width", scrollbarWidth + "px");
+  }
+
+  function isScrollLocked() {
+    return document.body.classList.contains(CLASSES.LOCKED);
+  }
+
+  function lockScroll() {
+    if (!isScrollLocked()) {
+      setScrollbarWidth();
+      document.body.classList.add(CLASSES.LOCKED);
+    }
+  }
+
+  function unlockScroll() {
+    document.body.classList.remove(CLASSES.LOCKED);
+  }
+
+  // FocusLock Helper
+  const focusableSelectors = [
+    "a[href]",
+    "area[href]",
+    'input:not([disabled]):not([type="hidden"]):not([aria-hidden])',
+    "select:not([disabled]):not([aria-hidden])",
+    "textarea:not([disabled]):not([aria-hidden])",
+    "button:not([disabled]):not([aria-hidden])",
+    "iframe",
+    "object",
+    "embed",
+    "[contenteditable]",
+    '[tabindex]:not([tabindex^="-"])'
+  ];
+
+  function FocusLock() {
+    this._lockedSelector = null;
+    this._focusableElements = null;
+    this._endElement = null;
+    this._selectors = focusableSelectors;
+    this._documentKeydownHandler = this._documentKeydownHandler.bind(this);
+  }
+
+  FocusLock.prototype._documentKeydownHandler = function (n) {
+    const u = document.activeElement;
+    if (n.key === "Tab") {
+      if (!this._focusableElements || this._focusableElements.length === 0) {
+        n.preventDefault();
+        u.blur();
+        return;
+      }
+      if (this._focusableElements.length === 1) {
+        n.preventDefault();
+        this._focusableElements[0].focus();
+        return;
+      }
+      if (this._focusableElements.length > 1 && !u.closest(this._lockedSelector)) {
+        n.preventDefault();
+        this._focusableElements[0].focus();
+        return;
+      }
+      if (!n.shiftKey && u === this._focusableElements[this._focusableElements.length - 1]) {
+        n.preventDefault();
+        this._focusableElements[0].focus();
+      } else if (n.shiftKey && u === this._focusableElements[0]) {
+        n.preventDefault();
+        this._focusableElements[this._focusableElements.length - 1].focus();
+      }
+    }
+  };
+
+  FocusLock.prototype.lock = function (n, c = true) {
+    this.unlock();
+    this._lockedSelector = n;
+    const u = document.querySelector(this._lockedSelector);
+    if (u) {
+      this._focusableElements = u.querySelectorAll(this._selectors);
+      this._endElement = document.activeElement;
+      const s = u.querySelector("[data-focus]") || this._focusableElements[0];
+      if (this._endElement) this._endElement.blur();
+      if (s && c) setTimeout(() => { s.focus(); }, 100);
+      document.addEventListener("keydown", this._documentKeydownHandler);
+    }
+  };
+
+  FocusLock.prototype.unlock = function (n = true) {
+    if (this._endElement && n) this._endElement.focus();
+    this._lockedSelector = null;
+    this._focusableElements = null;
+    this._endElement = null;
+    document.removeEventListener("keydown", this._documentKeydownHandler);
+  };
+
+  window.focusLock = window.focusLock || new FocusLock();
+
+  // NavDropdown Navigation Base Controller
+  const hasLink = (e) => {
+    const t = e.getAttribute("href");
+    return t && t !== "#";
+  };
+
+  const buildSubmenuBtn = (e) => {
+    return `<button aria-expanded="false" data-nav="button"><span><span class="visually-hidden">show submenu for “${e}”</span></span></button>`;
+  };
+
+  function NavDropdown(options = {}) {
+    const {
+      menuSelector = '[data-name="side-navigation"]',
+      parentSelector = '[data-nav="parent"]',
+      itemSelector = '[data-nav="item"]',
+      triggerSelector = '[data-nav="trigger"]',
+      contentSelector = '[data-nav="content"]',
+      interactiveClass = "js--active",
+      buttonSelector = '[data-nav="button"]',
+      activeAccordionUnder = 0
+    } = options;
+
+    this.parentSelector = parentSelector;
+    this.itemSelector = itemSelector;
+    this.triggerSelector = triggerSelector;
+    this.interactiveClass = interactiveClass;
+    this.contentSelector = contentSelector;
+    this.buttonSelector = buttonSelector;
+    this.menuSelector = menuSelector;
+    this.isAccordeon = window.matchMedia(`(max-width: ${activeAccordionUnder}px)`);
+
+    this.parent = document.querySelector(this.parentSelector);
+    this.navItems = document.querySelectorAll(`${this.parentSelector} ${this.itemSelector}`);
+    this.triggersNavigation = document.querySelectorAll(`${this.parentSelector} ${this.triggerSelector}`);
+    this.navContents = document.querySelectorAll(`${this.parentSelector} ${this.contentSelector}`);
+    this.buttonsNavigation = [];
+    this.currentActiveItem = undefined;
+    this.timerMouseout = undefined;
+    this.timerBlurElement = undefined;
+
+    this.mouseleaveItemHandler = this.mouseleaveItemHandler.bind(this);
+    this.mouseenterItemHandler = this.mouseenterItemHandler.bind(this);
+    this.closeAllSubmenu = this.closeAllSubmenu.bind(this);
+  }
+
+  NavDropdown.prototype.createButtonIfTriggerHasLink = function () {
+    this.navItems.forEach((o) => {
+      const i = o.querySelector(this.triggerSelector);
+      if (i) {
+        if (hasLink(i)) {
+          const btnHtml = buildSubmenuBtn(i.textContent);
+          i.insertAdjacentHTML("afterend", btnHtml);
+        } else {
+          i.setAttribute("aria-expanded", "false");
+          i.dataset.nav = "button";
+        }
+      }
+    });
+  };
+
+  NavDropdown.prototype.addAriaControl = function () {
+    this.buttonsNavigation = this.parent.querySelectorAll(this.buttonSelector);
+    this.buttonsNavigation.forEach((o, i) => {
+      const n = o.closest(this.itemSelector);
+      const c = n.querySelector(this.contentSelector);
+      if (c) {
+        o.setAttribute("aria-controls", `submenu-${i + 1}`);
+        c.setAttribute("id", `submenu-${i + 1}`);
+      }
+    });
+  };
+
+  NavDropdown.prototype.openSubmenu = function (t) {
+    const o = t.querySelector(this.contentSelector);
+    const i = t.querySelector(this.buttonSelector);
+    if (!i || !o) return;
+    t.classList.add(this.interactiveClass);
+    i.setAttribute("aria-expanded", "true");
+    o.removeAttribute("inert");
+    this.currentActiveItem = t;
+  };
+
+  NavDropdown.prototype.closeSubmenu = function (t = this.currentActiveItem) {
+    if (t) {
+      const o = t.querySelector(this.contentSelector);
+      const i = t.querySelector(this.buttonSelector);
+      if (!i || !o) return;
+      t.classList.remove(this.interactiveClass);
+      i.setAttribute("aria-expanded", "false");
+      o.setAttribute("inert", "");
+      o.style.height = this.isAccordeon.matches ? "0px" : null;
+      this.currentActiveItem = undefined;
+    }
+  };
+
+  NavDropdown.prototype.closeAllSubmenu = function () {
+    this.navItems.forEach((o) => { this.closeSubmenu(o); });
+  };
+
+  NavDropdown.prototype.triggerClickHander = function (t) {
+    const o = t.target;
+    const i = o.closest(this.itemSelector);
+    if (i.classList.contains(this.interactiveClass)) {
+      this.closeSubmenu();
+    } else {
+      this.openSubmenu(i);
+    }
+  };
+
+  NavDropdown.prototype.mouseenterItemHandler = function (t) {
+    const o = t.currentTarget;
+    const i = o.closest(this.itemSelector);
+    clearTimeout(this.timerMouseout);
+    if (i !== this.currentActiveItem) {
+      this.closeSubmenu();
+      this.openSubmenu(i);
+    }
+  };
+
+  NavDropdown.prototype.mouseleaveItemHandler = function () {
+    this.timerMouseout = setTimeout(() => { this.closeSubmenu(); }, 100);
+  };
+
+  NavDropdown.prototype.focusTriggerHandler = function (t) {
+    const o = t.target;
+    if (this.timerBlurElement) clearTimeout(this.timerBlurElement);
+    if (!o.closest(this.itemSelector).classList.contains(this.interactiveClass)) {
+      this.closeSubmenu();
+    }
+  };
+
+  NavDropdown.prototype.blurTriggerHandler = function (t) {
+    const o = t.target;
+    if (o.closest(`.${this.interactiveClass}`)) {
+      this.timerBlurElement = setTimeout(() => { this.closeSubmenu(); });
+    }
+  };
+
+  NavDropdown.prototype.addMouseListeners = function () {
+    this.navItems.forEach((o) => {
+      o.addEventListener("mouseenter", this.mouseenterItemHandler);
+      o.addEventListener("mouseleave", this.mouseleaveItemHandler);
+    });
+  };
+
+  NavDropdown.prototype.removeMouseListeners = function () {
+    this.navItems.forEach((o) => {
+      o.removeEventListener("mouseenter", this.mouseenterItemHandler);
+      o.removeEventListener("mouseleave", this.mouseleaveItemHandler);
+    });
+  };
+
+  NavDropdown.prototype.addEvents = function () {
+    const triggers = [...Array.from(this.triggersNavigation), ...Array.from(this.buttonsNavigation)];
+    this.buttonsNavigation.forEach((i) => {
+      i.addEventListener("click", this.triggerClickHander.bind(this));
+    });
+    triggers.forEach((i) => {
+      i.addEventListener("focus", this.focusTriggerHandler.bind(this));
+      i.addEventListener("blur", this.blurTriggerHandler.bind(this));
+    });
+  };
+
+  NavDropdown.prototype.isAccordeonChecker = function (t) {
+    this.closeSubmenu();
+    if (t.matches) {
+      this.removeMouseListeners();
+    } else {
+      this.addMouseListeners();
+    }
+  };
+
+  NavDropdown.prototype.init = function () {
+    if (!this.parent || !this.navItems || !this.triggersNavigation) return;
+    this.createButtonIfTriggerHasLink();
+    this.addAriaControl();
+    this.closeAllSubmenu();
+    this.addEvents();
+    this.isAccordeonChecker(this.isAccordeon);
+    this.isAccordeon.addEventListener("change", this.isAccordeonChecker.bind(this));
+  };
+
+  function HeaderNav(parent, options = {}) {
+    const {
+      burgerSelector = '[data-name="burger-button"]',
+      menuSelector = '[data-name="side-navigation"]',
+      headerSelector = '[data-name="header"]',
+      closeSubmenuSelector = ".navigation__dropdown_icon-arrow"
+    } = options;
+
+    NavDropdown.call(this, parent);
+
+    this.burgerSelector = burgerSelector;
+    this.headerSelector = document.querySelector(headerSelector);
+    this.menuSelector = menuSelector;
+    this.header = document.querySelector(headerSelector);
+    this.burgerButtons = document.querySelectorAll(burgerSelector);
+    this.menu = document.querySelector(menuSelector);
+    this.isNavigationOpen = undefined;
+    this.isDialogOpen = undefined;
+    this.clientWidth = document.documentElement.clientWidth;
+    this.closeSubmenuSelector = closeSubmenuSelector;
+    this.closeSubmenuBtns = document.querySelectorAll(closeSubmenuSelector);
+
+    this.openNavigation = this.openNavigation.bind(this);
+    this.closeNavigation = this.closeNavigation.bind(this);
+    this.toggleNavigation = this.toggleNavigation.bind(this);
+  }
+
+  HeaderNav.prototype = Object.create(NavDropdown.prototype);
+  HeaderNav.prototype.constructor = HeaderNav;
+
+  HeaderNav.prototype.init = function () {
+    this.burgerButtons.forEach((a) => { a.addEventListener("click", this.toggleNavigation); });
+    this.closeSubmenuBtns.forEach((a) => { a.addEventListener("click", this.closeAllSubmenu); });
+    window.addEventListener("keydown", this.toggleNavigation);
+    NavDropdown.prototype.init.call(this);
+  };
+
+  HeaderNav.prototype.openNavigation = function () {
+    if (!this.menu || !this.header) return;
+    this.menu.classList.add(CLASSES.ACTIVE);
+    this.header.classList.add(CLASSES.ACTIVE);
+    this.menu.setAttribute("aria-hidden", "false");
+    this.menu.removeAttribute("inert");
+    this.burgerButtons.forEach((a) => { a.setAttribute("aria-expanded", "true"); });
+    window.focusLock.lock(this.menuSelector);
+    lockScroll();
+  };
+
+  HeaderNav.prototype.closeNavigation = function () {
+    if (!this.menu || !this.header || this.isDialogOpen) return;
+    this.menu.classList.remove(CLASSES.ACTIVE);
+    this.header.classList.remove(CLASSES.ACTIVE);
+    this.menu.setAttribute("aria-hidden", "true");
+    if (this.clientWidth < BREAKPOINTS.TABLET_SM) {
+      this.menu.setAttribute("inert", "");
+    } else {
+      this.menu.removeAttribute("inert");
+    }
+    this.burgerButtons.forEach((a) => { a.setAttribute("aria-expanded", "false"); });
+    window.focusLock.unlock();
+    if (this.clientWidth > BREAKPOINTS.TABLET_MD && this.burgerButtons[0]) {
+      this.burgerButtons[0].focus();
+    }
+    this.closeAllSubmenu();
+    unlockScroll();
+  };
+
+  HeaderNav.prototype.toggleNavigation = function (a) {
+    if (!this.menu) return;
+    this.isNavigationOpen = this.menu.classList.contains(CLASSES.ACTIVE);
+    this.isDialogOpen = document.querySelector(`[role="dialog"].${CLASSES.ACTIVE}`);
+    this.clientWidth = document.documentElement.clientWidth;
+
+    const isEsc = a.type === "keydown" && a.key === KEY_CODES.ESC;
+    const isResize = a.type === "resize";
+    const isBurgerClick = !isResize && a.target && a.target.closest && a.target.closest(this.burgerSelector);
+    const isClick = a.type === "click";
+
+    if (isEsc) {
+      this.closeNavigation();
+    } else if (isBurgerClick && isClick) {
+      if (this.isNavigationOpen) {
+        this.closeNavigation();
+      } else {
+        this.openNavigation();
+      }
+    } else if (isResize) {
+      this.closeNavigation();
+    }
+  };
+
+  if (document.querySelector('[data-name="header"]')) {
+    const headerNav = new HeaderNav({}, { activeAccordionUnder: 1280 });
+    headerNav.init();
+  }
+};
+</script>
