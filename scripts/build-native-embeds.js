@@ -29,15 +29,110 @@ function minifyCSS(css) {
 }
 
 function minifyJS(js) {
-  return js
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/(^|[^:\\])\/\/[^\n]*/g, '$1')
+  let result = '';
+  let inSingle = false;
+  let inDouble = false;
+  let inTemplate = false;
+  let inLineComment = false;
+  let inBlockComment = false;
+  let escape = false;
+
+  for (let i = 0; i < js.length; i++) {
+    const char = js[i];
+    const next = js[i + 1];
+
+    if (inLineComment) {
+      if (char === '\n') {
+        inLineComment = false;
+        result += '\n';
+      }
+      continue;
+    }
+
+    if (inBlockComment) {
+      if (char === '*' && next === '/') {
+        inBlockComment = false;
+        i++;
+      }
+      continue;
+    }
+
+    if (inSingle) {
+      result += char;
+      if (escape) {
+        escape = false;
+      } else if (char === '\\') {
+        escape = true;
+      } else if (char === "'") {
+        inSingle = false;
+      }
+      continue;
+    }
+
+    if (inDouble) {
+      result += char;
+      if (escape) {
+        escape = false;
+      } else if (char === '\\') {
+        escape = true;
+      } else if (char === '"') {
+        inDouble = false;
+      }
+      continue;
+    }
+
+    if (inTemplate) {
+      result += char;
+      if (escape) {
+        escape = false;
+      } else if (char === '\\') {
+        escape = true;
+      } else if (char === '`') {
+        inTemplate = false;
+      }
+      continue;
+    }
+
+    // Strip comments outside strings
+    if (char === '/' && next === '/') {
+      inLineComment = true;
+      i++;
+      continue;
+    }
+
+    if (char === '/' && next === '*') {
+      inBlockComment = true;
+      i++;
+      continue;
+    }
+
+    // String literal bounds
+    if (char === "'") {
+      inSingle = true;
+      result += char;
+      continue;
+    }
+
+    if (char === '"') {
+      inDouble = true;
+      result += char;
+      continue;
+    }
+
+    if (char === '`') {
+      inTemplate = true;
+      result += char;
+      continue;
+    }
+
+    result += char;
+  }
+
+  return result
     .split('\n')
     .map(line => line.trim())
     .filter(Boolean)
     .join('\n')
-    .replace(/\s*([={}\(\);,:\?!\<\>\&\+\-\*\/])\s*/g, '$1')
-    .replace(/;}/g, '}')
     .trim();
 }
 
