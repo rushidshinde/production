@@ -82,13 +82,19 @@ function minifyJS(js) {
     }
 
     if (inTemplate) {
-      result += char;
       if (escape) {
+        result += char;
         escape = false;
       } else if (char === '\\') {
+        result += char;
         escape = true;
       } else if (char === '`') {
+        result += char;
         inTemplate = false;
+      } else if (char === '\n' || char === '\r') {
+        // Collapse newlines inside template strings
+      } else {
+        result += char;
       }
       continue;
     }
@@ -125,14 +131,18 @@ function minifyJS(js) {
       continue;
     }
 
+    if (char === '\n' || char === '\r') {
+      result += ' ';
+      continue;
+    }
+
     result += char;
   }
 
   return result
-    .split('\n')
-    .map(line => line.trim())
-    .filter(Boolean)
-    .join('\n')
+    .replace(/\s+/g, ' ')
+    .replace(/\s*([={}\(\);,:\?!\<\>\&\+\-\*\/])\s*/g, '$1')
+    .replace(/;}/g, '}')
     .trim();
 }
 
