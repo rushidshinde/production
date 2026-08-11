@@ -334,7 +334,9 @@ componentFolders.forEach(compName => {
         else if (fileChunk.includes('index-a83eb4d7')) globalTarget = 'window.SH.Accordion';
         else if (fileChunk.includes('core-b8cf')) globalTarget = 'window.SH.Swiper';
         else if (fileChunk.includes('autoplay')) globalTarget = 'window.SH.SwiperAutoplay';
-        else if (fileChunk.includes('pagination')) globalTarget = 'window.SH.SwiperPagination';
+        else if (fileChunk.includes('pagination')) {
+          globalTarget = (exportedName === 'N') ? 'window.SH.SwiperNavigation' : 'window.SH.SwiperPagination';
+        }
         else if (fileChunk.includes('effect-fade')) globalTarget = 'window.SH.SwiperEffectFade';
 
         if (globalTarget) {
