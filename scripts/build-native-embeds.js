@@ -15,7 +15,7 @@ const COMPONENTS_DIST_DIR = path.join(DIST_DIR, 'components');
 });
 
 // Components to EXCLUDE
-const EXCLUDED_COMPONENTS = new Set(['header', 'skip-navigation']);
+const EXCLUDED_COMPONENTS = new Set(['skip-navigation']);
 
 function minifyCSS(css) {
   return css
@@ -214,6 +214,28 @@ if (fs.existsSync(breakpointsPath)) {
   console.log(`✓ Generated dist/assets/asset-breakpoints.html (${len} chars)`);
 }
 
+// Asset: Scroll Lock (scroll-lock-a7e8b431.js)
+const scrollLockPath = path.join(PROD_DIR, 'assets/scripts/scroll-lock-a7e8b431.js');
+if (fs.existsSync(scrollLockPath)) {
+  let content = fs.readFileSync(scrollLockPath, 'utf-8');
+  content = content.replace(/import\s*[\s\S]*?from\s*["'][^"']+["'];?/g, '');
+  content = content.replace(/export\s*\{[^}]*\};?/g, '');
+  const scrollLockEmbed = `<script>
+(function() {
+  window.SH = window.SH || {};
+  if (!window.SH.lockScroll) {
+    var t = window.SH.Classes || {};
+    ${content.trim()}
+    window.SH.lockScroll = e;
+    window.SH.unlockScroll = s;
+    window.SH.toggleScroll = d;
+  }
+})();
+</script>`;
+  const len = writeEmbedFile(path.join(ASSETS_DIST_DIR, 'asset-scroll-lock.html'), scrollLockEmbed);
+  console.log(`✓ Generated dist/assets/asset-scroll-lock.html (${len} chars)`);
+}
+
 // Asset: Swiper via esm.sh (Single clean ESM embed)
 const swiperEmbed = `<script type="module">
   import Swiper, { Autoplay, Pagination, Navigation, EffectFade } from 'https://esm.sh/swiper@8';
@@ -332,6 +354,11 @@ componentFolders.forEach(compName => {
         else if (fileChunk.includes('classes')) globalTarget = 'window.SH.Classes';
         else if (fileChunk.includes('breakpoints')) globalTarget = 'window.SH.Breakpoints';
         else if (fileChunk.includes('index-a83eb4d7')) globalTarget = 'window.SH.Accordion';
+        else if (fileChunk.includes('scroll-lock')) {
+          if (exportedName === 'l') globalTarget = 'window.SH.lockScroll';
+          else if (exportedName === 'u') globalTarget = 'window.SH.unlockScroll';
+          else if (exportedName === 't') globalTarget = 'window.SH.toggleScroll';
+        }
         else if (fileChunk.includes('core-b8cf')) globalTarget = 'window.SH.Swiper';
         else if (fileChunk.includes('autoplay')) globalTarget = 'window.SH.SwiperAutoplay';
         else if (fileChunk.includes('pagination')) {
