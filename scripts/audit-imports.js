@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const compDir = path.resolve(__dirname, '../components');
-const excluded = new Set(['header', 'skip-navigation']);
+const excluded = new Set(['skip-navigation']);
 
 console.log('Component Name | Raw Import Chunks in Source | Asset Embeds Required in dist');
 console.log('---|---|---');
@@ -27,6 +27,7 @@ fs.readdirSync(compDir).forEach(compName => {
     else if (f.includes('classes')) assetEmbeds.add('asset-classes.html');
     else if (f.includes('breakpoints')) assetEmbeds.add('asset-breakpoints.html');
     else if (f.includes('index-a83eb4d7')) assetEmbeds.add('asset-accordion.html');
+    else if (f.includes('scroll-lock')) assetEmbeds.add('asset-scroll-lock.html');
     else if (f.includes('core-b8cf') || f.includes('autoplay') || f.includes('pagination') || f.includes('effect-fade')) {
       assetEmbeds.add('asset-swiper.html');
     } else if (f.includes('SmoothScroll')) {
