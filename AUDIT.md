@@ -37,6 +37,7 @@ Below is the complete audit matrix for all active components:
 | **`open-roles`** | `classes`, `insert-styles` | `asset-classes.html` | ✅ OK (7.5 KB) |
 | **`running-line`** | `classes`, `insert-styles` | `asset-classes.html` | ✅ OK (3.3 KB) |
 | **`share-page`** | *(None)* | *(None - Core only)* | ✅ OK (1.1 KB) |
+| **`skip-navigation`** | `insert-styles` | *(None - Core only)* | ✅ OK (0.5 KB) |
 | **`solution-accordion`** | `index-a83eb4d7` (Accordion), `insert-styles` | `asset-accordion.html` | ✅ OK (10.9 KB) |
 | **`swiper-cases`** | Swiper core, pagination, autoplay, effect-fade | `asset-swiper.html` | ✅ OK (7.6 KB) |
 | **`swiper-iphone-mockup`** | Swiper core, autoplay | `asset-swiper.html` | ✅ OK (5.7 KB) |

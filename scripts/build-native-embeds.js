@@ -15,7 +15,7 @@ const COMPONENTS_DIST_DIR = path.join(DIST_DIR, 'components');
 });
 
 // Components to EXCLUDE
-const EXCLUDED_COMPONENTS = new Set(['skip-navigation']);
+const EXCLUDED_COMPONENTS = new Set();
 
 function minifyCSS(css) {
   return css

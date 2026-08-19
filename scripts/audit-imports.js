@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const compDir = path.resolve(__dirname, '../components');
-const excluded = new Set(['skip-navigation']);
+const excluded = new Set();
 
 console.log('Component Name | Raw Import Chunks in Source | Asset Embeds Required in dist');
 console.log('---|---|---');
