@@ -31,7 +31,9 @@ fs.readdirSync(compDir).forEach(compName => {
     else if (f.includes('core-b8cf') || f.includes('autoplay') || f.includes('pagination') || f.includes('effect-fade')) {
       assetEmbeds.add('asset-swiper.html');
     } else if (f.includes('SmoothScroll')) {
-      assetEmbeds.add('(SmoothScroll - Excluded)');
+      const hasNamedImport = importLines.some(l => l.includes(f) && l.includes('{'));
+      if (hasNamedImport) assetEmbeds.add('asset-tabs.html');
+      else assetEmbeds.add('(SmoothScroll - Removed)');
     }
   });
 

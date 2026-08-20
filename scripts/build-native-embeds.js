@@ -236,6 +236,29 @@ if (fs.existsSync(scrollLockPath)) {
   console.log(`✓ Generated dist/assets/asset-scroll-lock.html (${len} chars)`);
 }
 
+// Asset: Tabs (SmoothScroll-d802c8a1.js - Pure Tabs Class only, SmoothScroll polyfill stripped)
+const tabsPath = path.join(PROD_DIR, 'assets/scripts/SmoothScroll-d802c8a1.js');
+if (fs.existsSync(tabsPath)) {
+  let content = fs.readFileSync(tabsPath, 'utf-8');
+  let polyfillIndex = content.indexOf('zt={}');
+  if (polyfillIndex === -1) polyfillIndex = content.indexOf('he={get exports');
+  if (polyfillIndex !== -1) {
+    content = content.substring(0, polyfillIndex);
+  }
+  content = content.replace(/export\s*\{[^}]*\};?/g, '');
+  const tabsEmbed = `<script>
+(function() {
+  window.SH = window.SH || {};
+  if (!window.SH.Tabs) {
+    ${content.trim()}
+    window.SH.Tabs = ve;
+  }
+})();
+</script>`;
+  const len = writeEmbedFile(path.join(ASSETS_DIST_DIR, 'asset-tabs.html'), tabsEmbed);
+  console.log(`✓ Generated dist/assets/asset-tabs.html (${len} chars)`);
+}
+
 // Asset: Swiper via esm.sh (Single clean ESM embed)
 const swiperEmbed = `<script type="module">
   import Swiper, { Autoplay, Pagination, Navigation, EffectFade } from 'https://esm.sh/swiper@8';
@@ -365,6 +388,7 @@ componentFolders.forEach(compName => {
           globalTarget = (exportedName === 'N') ? 'window.SH.SwiperNavigation' : 'window.SH.SwiperPagination';
         }
         else if (fileChunk.includes('effect-fade')) globalTarget = 'window.SH.SwiperEffectFade';
+        else if (fileChunk.includes('SmoothScroll')) globalTarget = 'window.SH.Tabs';
 
         if (globalTarget) {
           importsMap.push(`const ${targetLocal} = ${globalTarget};`);

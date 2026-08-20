@@ -43,12 +43,12 @@ Below is the complete audit matrix for all active components:
 | **`swiper-iphone-mockup`** | Swiper core, autoplay | `asset-swiper.html` | ✅ OK (5.7 KB) |
 | **`swiper-posts`** | Swiper core, pagination, autoplay, breakpoints | `asset-swiper.html`, `asset-breakpoints.html` | ✅ OK (7.2 KB) |
 | **`swiper-section`** | Swiper core, pagination, autoplay, effect-fade | `asset-swiper.html` | ✅ OK (7.2 KB) |
-| **`tabs`** | `insert-styles` | *(None - Core only)* | ✅ OK (3.6 KB) |
-| **`tabs-privacy`** | `insert-styles` | *(None - Core only)* | ✅ OK (0.6 KB) |
-| **`tabs-review`** | `insert-styles` | *(None - Core only)* | ✅ OK (1.6 KB) |
+| **`tabs`** | `SmoothScroll-d802c8a1` (Tabs), `insert-styles` | `asset-tabs.html` | ✅ OK (3.7 KB) |
+| **`tabs-privacy`** | `SmoothScroll-d802c8a1` (Tabs), `insert-styles` | `asset-tabs.html` | ✅ OK (0.6 KB) |
+| **`tabs-review`** | `SmoothScroll-d802c8a1` (Tabs), `insert-styles` | `asset-tabs.html` | ✅ OK (1.6 KB) |
 | **`wistia`** | `insert-styles` | *(None - Core only)* | ✅ OK (0.3 KB) |
 
-> **Note**: SmoothScroll imports present in source files are intentionally excluded from component asset embeds as smooth scrolling is handled natively by browser CSS (`scroll-behavior: smooth`) or global page initialization.
+> **Note**: SmoothScroll polyfill code has been completely removed in favor of native browser CSS (`scroll-behavior: smooth`). The `Tabs` component class extracted from `SmoothScroll-d802c8a1.js` is bundled into `asset-tabs.html` for tab navigation components.
 
 ---
 
