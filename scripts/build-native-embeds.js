@@ -245,12 +245,12 @@ if (fs.existsSync(tabsPath)) {
   if (polyfillIndex !== -1) {
     content = content.substring(0, polyfillIndex);
   }
-  content = content.replace(/export\s*\{[^}]*\};?/g, '');
+  content = content.replace(/export\s*\{[^}]*\};?/g, '').trim().replace(/[,;]\s*$/, '');
   const tabsEmbed = `<script>
 (function() {
   window.SH = window.SH || {};
   if (!window.SH.Tabs) {
-    ${content.trim()}
+    ${content};
     window.SH.Tabs = ve;
   }
 })();
