@@ -15,6 +15,7 @@ All shared asset embed scripts are compiled into `dist/assets/`. When a componen
 | **`dist/assets/asset-breakpoints.html`** | `window.SH.Breakpoints` | Media query breakpoint constants matching CSS responsive design rules. |
 | **`dist/assets/asset-scroll-lock.html`** | `window.SH.lockScroll`, `window.SH.unlockScroll`, `window.SH.toggleScroll` | Utilities for locking and unlocking body scroll (used by header menu/dialogs). |
 | **`dist/assets/asset-accordion.html`** | `window.SH.Accordion` | Accordion widget constructor and event handler logic. |
+| **`dist/assets/asset-tabs.html`** | `window.SH.Tabs` | Accessible tab navigation widget constructor class (used by tab components). |
 | **`dist/assets/asset-swiper.html`** | `window.SH.Swiper`, `window.SH.SwiperAutoplay`, `window.SH.SwiperPagination`, `window.SH.SwiperNavigation`, `window.SH.SwiperEffectFade` | Swiper.js engine and modular plugin bindings. |
 
 ---
